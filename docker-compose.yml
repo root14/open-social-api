@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_open-social
+    environment:
+      POSTGRES_USER: open_social_user
+      POSTGRES_PASSWORD: open_social_password
+      POSTGRES_DB: open_social_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: springboot_app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/open_social_db
+      SPRING_DATASOURCE_USERNAME: open_social_user
+      SPRING_DATASOURCE_PASSWORD: open_social_password
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

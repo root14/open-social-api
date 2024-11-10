@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: open-social-api
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/open_social_db
+    username: open_social_user
+    password: open_social_password
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # or another setting, if preferred
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
