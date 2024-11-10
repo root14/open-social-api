@@ -1,7 +1,8 @@
 package com.root14.opensocialapi.controller;
 
+import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
-import com.root14.opensocialapi.dao.UserUpdateDao;
+import com.root14.opensocialapi.dao.ForgotPasswordDao;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.service.UserService;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    //todo add has role admin
     @GetMapping("/getAllUser")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
@@ -32,20 +34,27 @@ public class UserController {
     public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDao userRegisterDao, BindingResult bindingResult) throws Exception {
 
         if (bindingResult.hasErrors()) {
-            //TODO
             throw new Exception(bindingResult.getFieldError().getDefaultMessage());
         }
 
         return userService.saveSocialUser(userRegisterDao);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<String> updateUser(@Valid @RequestBody UserUpdateDao userUpdateDao, BindingResult bindingResult) throws Exception {
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<String> updateUser(@Valid @RequestBody ForgotPasswordDao forgotPasswordDao, BindingResult bindingResult) throws Exception {
         if (bindingResult.hasErrors()) {
             throw new Exception(bindingResult.getFieldError().getDefaultMessage());
         }
 
-        return userService.updateSocialUser(userUpdateDao);
+        return userService.updateSocialUser(forgotPasswordDao);
     }
 
+    public ResponseEntity<String> login(@RequestBody UserLoginDao userLoginDao, BindingResult bindingResult) throws Exception {
+        //TODO update this fun on when spring security implemented
+        if (bindingResult.hasErrors()) {
+            throw new Exception(bindingResult.getFieldError().getDefaultMessage());
+        }
+
+        return null;
+    }
 }

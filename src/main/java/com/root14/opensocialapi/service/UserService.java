@@ -1,11 +1,11 @@
 package com.root14.opensocialapi.service;
 
+import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
-import com.root14.opensocialapi.dao.UserUpdateDao;
+import com.root14.opensocialapi.dao.ForgotPasswordDao;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,7 @@ public class UserService {
         return userRepository.getUserByEmail(email).orElseThrow(() -> new Exception("User not found"));
     }
 
-    public User getSocialUserByUserId(String userId) throws Exception {
+    public User getSocialUserByUserId(Long userId) throws Exception {
         return userRepository.getUserById(userId).orElseThrow(() -> new Exception("User not found"));
     }
 
@@ -49,20 +49,41 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<String> updateSocialUser(UserUpdateDao userUpdateDao) throws Exception {
+    public ResponseEntity<String> updateSocialUser(ForgotPasswordDao forgotPasswordDao) throws Exception {
 
-        Optional<User> optionalUser = userRepository.getUserByEmail(userUpdateDao.getEmail());
+        Optional<User> optionalUser = userRepository.getUserByEmail(forgotPasswordDao.getEmail());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
+
             user.setUpdatedAt(LocalDateTime.now());
-            user.setUsername(userUpdateDao.getEmail());
-            user.setEmail(userUpdateDao.getEmail());
-            user.setPassword(userUpdateDao.getPassword());
+            user.setPassword(forgotPasswordDao.getPassword());
 
             userRepository.save(user);
             return ResponseEntity.ok().body("User updated.");
         } else {
             throw new Exception("user cannot update.");
         }
+    }
+
+    /**
+     * @param userLoginDao
+     * @return
+     * @throws Exception
+     */
+    public ResponseEntity<String> login(UserLoginDao userLoginDao) throws Exception {
+        //TODO update this fun on when spring security implemented
+        if (userLoginDao.getEmail() == null) {
+
+            userRepository.getUserByEmail(userLoginDao.getEmail());
+
+        } else if (userLoginDao.getUserName() == null) {
+
+            userRepository.getUserByUsername(userLoginDao.getUserName());
+
+        } else {
+            throw new Exception("user cannot login.");
+        }
+
+        return ResponseEntity.ok().body("User logged in.");
     }
 }

@@ -12,10 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserUpdateDao {
-    @NotBlank
-    private String userName;
-
+public class ForgotPasswordDao {
     @Size(min = 8, max = 20)
     private String password;
 
