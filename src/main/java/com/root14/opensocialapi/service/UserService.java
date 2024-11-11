@@ -4,8 +4,11 @@ import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
 import com.root14.opensocialapi.dao.ForgotPasswordDao;
 import com.root14.opensocialapi.entity.User;
+import com.root14.opensocialapi.exception.ErrorType;
+import com.root14.opensocialapi.exception.UserException;
 import com.root14.opensocialapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -35,18 +38,20 @@ public class UserService {
         return userRepository.getUserById(userId).orElseThrow(() -> new Exception("User not found"));
     }
 
-    public ResponseEntity<String> saveSocialUser(UserRegisterDao userRegisterDao) throws Exception {
+    public ResponseEntity<String> saveSocialUser(UserRegisterDao userRegisterDao) throws UserException {
         Optional<User> optionalUser = userRepository.getUserByEmail(userRegisterDao.getEmail());
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
 
-            user.setCreatedAt(LocalDateTime.now());
-            user.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(user);
-            return ResponseEntity.ok().body("User saved.");
-        } else {
-            throw new Exception("user cannot saved.");
+        if (optionalUser.isPresent()) {
+            throw UserException.builder()
+                    .errorType(ErrorType.USER_ALREADY_EXISTS)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorMessage("User already exists").build();
         }
+
+        User user = User.builder().createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).email(userRegisterDao.getEmail()).password(userRegisterDao.getPassword()).username(userRegisterDao.getUserName()).build();
+
+        userRepository.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body("User saved.");
     }
 
     public ResponseEntity<String> updateSocialUser(ForgotPasswordDao forgotPasswordDao) throws Exception {

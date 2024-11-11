@@ -4,6 +4,8 @@ import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
 import com.root14.opensocialapi.dao.ForgotPasswordDao;
 import com.root14.opensocialapi.entity.User;
+import com.root14.opensocialapi.exception.ErrorType;
+import com.root14.opensocialapi.exception.UserException;
 import com.root14.opensocialapi.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,10 +33,16 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDao userRegisterDao, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDao userRegisterDao, BindingResult bindingResult) throws UserException {
 
         if (bindingResult.hasErrors()) {
-            throw new Exception(bindingResult.getFieldError().getDefaultMessage());
+            UserException userException = UserException.builder()
+                    .errorType(ErrorType.EMAIL_BAD_FORMAT)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorMessage(bindingResult.getFieldError().getDefaultMessage())
+                    .build();
+
+            throw userException;
         }
 
         return userService.saveSocialUser(userRegisterDao);
