@@ -54,9 +54,9 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.CREATED).body("User saved.");
     }
 
-    public ResponseEntity<String> updateSocialUser(ForgotPasswordDao forgotPasswordDao) throws Exception {
-
+    public ResponseEntity<String> updateSocialUser(ForgotPasswordDao forgotPasswordDao) throws UserException {
         Optional<User> optionalUser = userRepository.getUserByEmail(forgotPasswordDao.getEmail());
+
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
@@ -66,16 +66,18 @@ public class UserService {
             userRepository.save(user);
             return ResponseEntity.ok().body("User updated.");
         } else {
-            throw new Exception("user cannot update.");
+            throw UserException.builder()
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorType(ErrorType.USER_CANNOT_UPDATE)
+                    .errorMessage("user cannot update.").build();
         }
     }
 
     /**
      * @param userLoginDao
      * @return
-     * @throws Exception
      */
-    public ResponseEntity<String> login(UserLoginDao userLoginDao) throws Exception {
+    public ResponseEntity<String> login(UserLoginDao userLoginDao) throws UserException {
         //TODO update this fun on when spring security implemented
         if (userLoginDao.getEmail() == null) {
 
@@ -86,7 +88,10 @@ public class UserService {
             userRepository.getUserByUsername(userLoginDao.getUserName());
 
         } else {
-            throw new Exception("user cannot login.");
+            throw UserException.builder()
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorType(ErrorType.USER_CANNOT_UPDATE)
+                    .errorMessage("user cannot login.").build();
         }
 
         return ResponseEntity.ok().body("User logged in.");

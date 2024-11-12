@@ -49,9 +49,13 @@ public class UserController {
     }
 
     @PostMapping("/forgotPassword")
-    public ResponseEntity<String> updateUser(@Valid @RequestBody ForgotPasswordDao forgotPasswordDao, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<String> updateUser(@Valid @RequestBody ForgotPasswordDao forgotPasswordDao, BindingResult bindingResult) throws Exception, UserException {
         if (bindingResult.hasErrors()) {
-            throw new Exception(bindingResult.getFieldError().getDefaultMessage());
+            throw UserException.builder()
+                    .errorType(ErrorType.DAO_BAD_FORMAT)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorMessage(bindingResult.getFieldError().getDefaultMessage())
+                    .build();
         }
 
         return userService.updateSocialUser(forgotPasswordDao);
