@@ -1,13 +1,16 @@
 package com.root14.opensocialapi.controller;
 
+import com.root14.opensocialapi.dao.LoginResponse;
 import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
 import com.root14.opensocialapi.dao.ForgotPasswordDao;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.exception.ErrorType;
 import com.root14.opensocialapi.exception.UserException;
+import com.root14.opensocialapi.service.JwtService;
 import com.root14.opensocialapi.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,14 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/user")
+@RequestMapping("api/auth")
+@RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     //todo add has role admin
     @GetMapping("/getAllUser")
@@ -61,12 +60,16 @@ public class UserController {
         return userService.updateSocialUser(forgotPasswordDao);
     }
 
-    public ResponseEntity<String> login(@RequestBody UserLoginDao userLoginDao, BindingResult bindingResult) throws Exception {
-        //TODO update this fun on when spring security implemented
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDao userLoginDao, BindingResult bindingResult) throws UserException {
         if (bindingResult.hasErrors()) {
-            throw new Exception(bindingResult.getFieldError().getDefaultMessage());
+            throw UserException.builder()
+                    .errorType(ErrorType.DAO_BAD_FORMAT)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .errorMessage(bindingResult.getFieldError().getDefaultMessage())
+                    .build();
         }
 
-        return null;
+        return userService.authenticate(userLoginDao);
     }
 }

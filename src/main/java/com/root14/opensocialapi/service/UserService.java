@@ -1,5 +1,6 @@
 package com.root14.opensocialapi.service;
 
+import com.root14.opensocialapi.dao.LoginResponse;
 import com.root14.opensocialapi.dao.UserLoginDao;
 import com.root14.opensocialapi.dao.UserRegisterDao;
 import com.root14.opensocialapi.dao.ForgotPasswordDao;
@@ -10,6 +11,9 @@ import com.root14.opensocialapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,8 +23,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     public List<User> findAll() {
         return userRepository.findAll();
@@ -38,17 +44,35 @@ public class UserService {
         return userRepository.getUserById(userId).orElseThrow(() -> new Exception("User not found"));
     }
 
+    //TODO refactor
+    public ResponseEntity<LoginResponse> authenticate(UserLoginDao userLoginDao) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginDao.getEmail(), userLoginDao.getPassword()));
+        User foundedUser = userRepository.getUserByEmail(userLoginDao.getEmail()).orElseThrow();
+
+        String jwtToken = jwtService.generateToken(foundedUser);
+
+        LoginResponse loginResponse = LoginResponse.builder()
+                .token(jwtToken)
+                .expiresIn(jwtService.getExpirationTime())
+                .build();
+
+        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    }
+
     public ResponseEntity<String> saveSocialUser(UserRegisterDao userRegisterDao) throws UserException {
-        Optional<User> optionalUser = userRepository.getUserByEmail(userRegisterDao.getEmail());
+        Optional<User> optionalUser = userRepository.getUserByUsername(userRegisterDao.getUserName());
 
         if (optionalUser.isPresent()) {
-            throw UserException.builder()
-                    .errorType(ErrorType.USER_ALREADY_EXISTS)
-                    .httpStatus(HttpStatus.BAD_REQUEST)
-                    .errorMessage("User already exists").build();
+            throw UserException.builder().errorType(ErrorType.USER_ALREADY_EXISTS).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("User already exists").build();
         }
 
-        User user = User.builder().createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).email(userRegisterDao.getEmail()).password(userRegisterDao.getPassword()).username(userRegisterDao.getUserName()).build();
+        User user = User.builder()
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .email(userRegisterDao.getEmail())
+                .password(passwordEncoder.encode(userRegisterDao.getPassword()))
+                .username(userRegisterDao.getUserName())
+                .build();
 
         userRepository.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("User saved.");
@@ -66,10 +90,7 @@ public class UserService {
             userRepository.save(user);
             return ResponseEntity.ok().body("User updated.");
         } else {
-            throw UserException.builder()
-                    .httpStatus(HttpStatus.BAD_REQUEST)
-                    .errorType(ErrorType.USER_CANNOT_UPDATE)
-                    .errorMessage("user cannot update.").build();
+            throw UserException.builder().httpStatus(HttpStatus.BAD_REQUEST).errorType(ErrorType.USER_CANNOT_UPDATE).errorMessage("user cannot update.").build();
         }
     }
 
@@ -88,10 +109,7 @@ public class UserService {
             userRepository.getUserByUsername(userLoginDao.getUserName());
 
         } else {
-            throw UserException.builder()
-                    .httpStatus(HttpStatus.BAD_REQUEST)
-                    .errorType(ErrorType.USER_CANNOT_UPDATE)
-                    .errorMessage("user cannot login.").build();
+            throw UserException.builder().httpStatus(HttpStatus.BAD_REQUEST).errorType(ErrorType.USER_CANNOT_UPDATE).errorMessage("user cannot login.").build();
         }
 
         return ResponseEntity.ok().body("User logged in.");
