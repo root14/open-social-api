@@ -35,13 +35,12 @@ public class UserController {
     public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDao userRegisterDao, BindingResult bindingResult) throws UserException {
 
         if (bindingResult.hasErrors()) {
-            UserException userException = UserException.builder()
+
+            throw UserException.builder()
                     .errorType(ErrorType.EMAIL_BAD_FORMAT)
                     .httpStatus(HttpStatus.BAD_REQUEST)
                     .errorMessage(bindingResult.getFieldError().getDefaultMessage())
                     .build();
-
-            throw userException;
         }
 
         return userService.saveSocialUser(userRegisterDao);

@@ -11,6 +11,7 @@ import com.root14.opensocialapi.repository.PostRepository;
 import com.root14.opensocialapi.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,24 +28,41 @@ public class PostService {
     }
 
     //TODO add user check
-    public ResponseEntity<String> updatePost(UpdatePostDao updatePostDao) {
+    public ResponseEntity<String> patchPost(UpdatePostDao updatePostDao) {
+        //authenticated(jwt) userName
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Optional<Post> optionalPost = postRepository.findPostById(updatePostDao.getPostId());
 
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-            post.setContent(updatePostDao.getPost().getContent());
-            post.setUpdatedAt(LocalDateTime.now());
-            postRepository.save(post);
-            return ResponseEntity.ok().body("Post updated");
+            if (userName.equals(post.getUser().getUsername())) {
+                post.setContent(updatePostDao.getPost().getContent());
+                post.setUpdatedAt(LocalDateTime.now());
+                postRepository.save(post);
+                return ResponseEntity.ok().body("Post updated");
+            }
         }
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Post not found");
     }
 
     //TODO add user check
-    public ResponseEntity<String> deletePost(DeletePostDao deletePostDao) {
-        postRepository.deleteById(deletePostDao.getPostId());
-        return new ResponseEntity<>("Post deleted", HttpStatus.OK);
+    public ResponseEntity<String> deletePost(DeletePostDao deletePostDao) throws PostException {
+        //authenticated(jwt) userId
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<Post> post = postRepository.findPostById(deletePostDao.getPostId());
+
+        if (post.isPresent()) {
+            if (userName.equals(post.get().getUser().getUsername())) {
+                postRepository.delete(post.get());
+                return new ResponseEntity<>("Post deleted", HttpStatus.OK);
+            }
+        } else {
+            throw PostException.builder().httpStatus(HttpStatus.NOT_MODIFIED).errorType(ErrorType.NOT_CHANGED).errorMessage("Post cannot find.").build();
+        }
+        throw PostException.builder().httpStatus(HttpStatus.NOT_MODIFIED).errorType(ErrorType.NOT_CHANGED).errorMessage("Cannot delete.").build();
     }
 
     //TODO add user check
@@ -54,22 +72,21 @@ public class PostService {
             User user = optionalUser.get();
             Post post = new Post();
 
-            post.setUser(user);
-            post.setAuthorId(user.getId());
-            post.setCreatedAt(LocalDateTime.now());
-            post.setUpdatedAt(LocalDateTime.now());
-            post.setContent(addPostDao.getContent());
+            //authenticated(jwt) userId
+            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (userName.equals(addPostDao.getUserName())) {
+                post.setUser(user);
+                post.setAuthorId(user.getId());
+                post.setCreatedAt(LocalDateTime.now());
+                post.setUpdatedAt(LocalDateTime.now());
+                post.setContent(addPostDao.getContent());
+                user.addPost(post);
 
-            user.addPost(post);
-
-            userRepository.save(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Post saved.");
+                userRepository.save(user);
+                return ResponseEntity.status(HttpStatus.CREATED).body("Post saved.");
+            }
         } else {
-            throw PostException.builder()
-                    .errorMessage("User not found.")
-                    .errorType(ErrorType.USER_NOT_FOUND)
-                    .httpStatus(HttpStatus.NOT_FOUND)
-                    .build();
+            throw PostException.builder().errorMessage("User not found.").errorType(ErrorType.USER_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
         }
     }
 }

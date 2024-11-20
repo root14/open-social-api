@@ -6,7 +6,7 @@ public enum ErrorType {
     USER_NOT_FOUND,
     USER_CANNOT_UPDATE,
     DAO_BAD_FORMAT,
-
+    NOT_CHANGED,
 }
 
 

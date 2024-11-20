@@ -29,7 +29,7 @@ public class PostController {
 
     @PatchMapping("/patchPost")
     public ResponseEntity<String> patchPost(@RequestBody UpdatePostDao updatePostDao) throws PostException {
-        return postService.updatePost(updatePostDao);
+        return postService.patchPost(updatePostDao);
     }
 
     @GetMapping
