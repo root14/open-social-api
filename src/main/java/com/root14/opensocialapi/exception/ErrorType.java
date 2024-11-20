@@ -7,6 +7,7 @@ public enum ErrorType {
     USER_CANNOT_UPDATE,
     DAO_BAD_FORMAT,
     NOT_CHANGED,
+    POST_NOT_FOUND,
 }
 
 

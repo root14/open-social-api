@@ -20,14 +20,15 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long authorId;
-
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @ElementCollection
     private List<String> likedUsersId;
+
+    @ElementCollection
+    private List<String> comments;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude

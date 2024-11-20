@@ -2,6 +2,7 @@ package com.root14.opensocialapi.controller;
 
 import com.root14.opensocialapi.dao.AddPostDao;
 import com.root14.opensocialapi.dao.DeletePostDao;
+import com.root14.opensocialapi.dao.LikePostDao;
 import com.root14.opensocialapi.dao.UpdatePostDao;
 import com.root14.opensocialapi.exception.PostException;
 import com.root14.opensocialapi.service.PostService;
@@ -30,6 +31,11 @@ public class PostController {
     @PatchMapping("/patchPost")
     public ResponseEntity<String> patchPost(@RequestBody UpdatePostDao updatePostDao) throws PostException {
         return postService.patchPost(updatePostDao);
+    }
+
+    @PostMapping("/likedPost")
+    public ResponseEntity<String> likedPost(@RequestBody LikePostDao likePostDao) throws PostException {
+        return postService.addPostLikedUser(likePostDao);
     }
 
     @GetMapping

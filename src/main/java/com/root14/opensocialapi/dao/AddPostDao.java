@@ -7,7 +7,5 @@ import lombok.Data;
 @Data
 @Builder
 public class AddPostDao {
-    @Email
-    private String userName;
     private String content;
 }

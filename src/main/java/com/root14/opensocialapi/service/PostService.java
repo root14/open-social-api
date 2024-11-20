@@ -2,6 +2,7 @@ package com.root14.opensocialapi.service;
 
 import com.root14.opensocialapi.dao.AddPostDao;
 import com.root14.opensocialapi.dao.DeletePostDao;
+import com.root14.opensocialapi.dao.LikePostDao;
 import com.root14.opensocialapi.dao.UpdatePostDao;
 import com.root14.opensocialapi.entity.Post;
 import com.root14.opensocialapi.entity.User;
@@ -27,7 +28,6 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    //TODO add user check
     public ResponseEntity<String> patchPost(UpdatePostDao updatePostDao) {
         //authenticated(jwt) userName
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -47,7 +47,6 @@ public class PostService {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Post not found");
     }
 
-    //TODO add user check
     public ResponseEntity<String> deletePost(DeletePostDao deletePostDao) throws PostException {
         //authenticated(jwt) userId
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -65,28 +64,38 @@ public class PostService {
         throw PostException.builder().httpStatus(HttpStatus.NOT_MODIFIED).errorType(ErrorType.NOT_CHANGED).errorMessage("Cannot delete.").build();
     }
 
-    //TODO add user check
     public ResponseEntity<String> savePost(AddPostDao addPostDao) throws PostException {
-        Optional<User> optionalUser = userRepository.getUserByUsername(addPostDao.getUserName());
+        //authenticated(jwt) userId
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<User> optionalUser = userRepository.getUserByUsername(userName);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             Post post = new Post();
 
-            //authenticated(jwt) userId
-            String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-            if (userName.equals(addPostDao.getUserName())) {
-                post.setUser(user);
-                post.setAuthorId(user.getId());
-                post.setCreatedAt(LocalDateTime.now());
-                post.setUpdatedAt(LocalDateTime.now());
-                post.setContent(addPostDao.getContent());
-                user.addPost(post);
+            post.setUser(user);
+            post.setCreatedAt(LocalDateTime.now());
+            post.setUpdatedAt(LocalDateTime.now());
+            post.setContent(addPostDao.getContent());
+            user.addPost(post);
 
-                userRepository.save(user);
-                return ResponseEntity.status(HttpStatus.CREATED).body("Post saved.");
-            }
+            userRepository.save(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Post saved.");
         } else {
             throw PostException.builder().errorMessage("User not found.").errorType(ErrorType.USER_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    public ResponseEntity<String> addPostLikedUser(LikePostDao likePostDao) throws PostException {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<Post> post = postRepository.findPostById(likePostDao.getPostId());
+        if (post.isPresent()) {
+            Post foundedPost = post.get();
+            foundedPost.getLikedUsersId().add(userName);
+            return ResponseEntity.status(HttpStatus.OK).body("Post liked.");
+        } else {
+            throw PostException.builder().errorMessage("Post not found.").errorType(ErrorType.POST_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
         }
     }
 }
