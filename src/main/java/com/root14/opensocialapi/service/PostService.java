@@ -26,6 +26,7 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
+    //TODO add user check
     public ResponseEntity<String> updatePost(UpdatePostDao updatePostDao) {
         Optional<Post> optionalPost = postRepository.findPostById(updatePostDao.getPostId());
 
@@ -40,13 +41,15 @@ public class PostService {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Post not found");
     }
 
+    //TODO add user check
     public ResponseEntity<String> deletePost(DeletePostDao deletePostDao) {
         postRepository.deleteById(deletePostDao.getPostId());
         return new ResponseEntity<>("Post deleted", HttpStatus.OK);
     }
 
+    //TODO add user check
     public ResponseEntity<String> savePost(AddPostDao addPostDao) throws PostException {
-        Optional<User> optionalUser = userRepository.getUserByEmail(addPostDao.getEmail());
+        Optional<User> optionalUser = userRepository.getUserByUsername(addPostDao.getUserName());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             Post post = new Post();

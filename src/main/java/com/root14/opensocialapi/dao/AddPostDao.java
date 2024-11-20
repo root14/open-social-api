@@ -8,6 +8,6 @@ import lombok.Data;
 @Builder
 public class AddPostDao {
     @Email
-    private String email;
+    private String userName;
     private String content;
 }

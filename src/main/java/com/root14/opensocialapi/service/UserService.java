@@ -44,74 +44,56 @@ public class UserService {
         return userRepository.getUserById(userId).orElseThrow(() -> new Exception("User not found"));
     }
 
-    //TODO refactor
-    public ResponseEntity<LoginResponse> authenticate(UserLoginDao userLoginDao) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginDao.getEmail(), userLoginDao.getPassword()));
-        User foundedUser = userRepository.getUserByEmail(userLoginDao.getEmail()).orElseThrow();
+    public ResponseEntity<LoginResponse> authenticate(UserLoginDao userLoginDao) throws UserException {
+        if (userRepository.existsUserByEmailAndUsername(userLoginDao.getEmail(), userLoginDao.getUserName())) {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginDao.getUserName(), userLoginDao.getPassword()));
+            User foundedUser = userRepository.getUserByUsername(userLoginDao.getUserName()).orElseThrow();
 
-        String jwtToken = jwtService.generateToken(foundedUser);
+            String jwtToken = jwtService.generateToken(foundedUser);
 
-        LoginResponse loginResponse = LoginResponse.builder()
-                .token(jwtToken)
-                .expiresIn(jwtService.getExpirationTime())
-                .build();
+            LoginResponse loginResponse = LoginResponse.builder().token(jwtToken).expiresIn(jwtService.getExpirationTime()).build();
 
-        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+            return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+        } else {
+            throw UserException.builder().errorType(ErrorType.USER_NOT_FOUND).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("User not found").build();
+        }
+
     }
 
     public ResponseEntity<String> saveSocialUser(UserRegisterDao userRegisterDao) throws UserException {
-        Optional<User> optionalUser = userRepository.getUserByUsername(userRegisterDao.getUserName());
+        if (!userRepository.existsUserByEmailAndUsername(userRegisterDao.getEmail(), userRegisterDao.getUserName())) {
+            Optional<User> optionalUser = userRepository.getUserByUsername(userRegisterDao.getUserName());
 
-        if (optionalUser.isPresent()) {
-            throw UserException.builder().errorType(ErrorType.USER_ALREADY_EXISTS).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("User already exists").build();
+            if (optionalUser.isPresent()) {
+                throw UserException.builder().errorType(ErrorType.USER_ALREADY_EXISTS).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("User already exists").build();
+            }
+
+            User user = User.builder().createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).email(userRegisterDao.getEmail()).password(passwordEncoder.encode(userRegisterDao.getPassword())).username(userRegisterDao.getUserName()).build();
+
+            userRepository.save(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body("User saved.");
+        } else {
+            throw UserException.builder().errorType(ErrorType.DAO_BAD_FORMAT).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("Credential already exists").build();
         }
-
-        User user = User.builder()
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .email(userRegisterDao.getEmail())
-                .password(passwordEncoder.encode(userRegisterDao.getPassword()))
-                .username(userRegisterDao.getUserName())
-                .build();
-
-        userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body("User saved.");
     }
 
     public ResponseEntity<String> updateSocialUser(ForgotPasswordDao forgotPasswordDao) throws UserException {
-        Optional<User> optionalUser = userRepository.getUserByEmail(forgotPasswordDao.getEmail());
+        if (userRepository.existsUserByEmailAndUsername(forgotPasswordDao.getEmail(), forgotPasswordDao.getUserName())) {
+            Optional<User> optionalUser = userRepository.getUserByEmail(forgotPasswordDao.getEmail());
 
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
 
-            user.setUpdatedAt(LocalDateTime.now());
-            user.setPassword(forgotPasswordDao.getPassword());
+                user.setUpdatedAt(LocalDateTime.now());
+                user.setPassword(forgotPasswordDao.getPassword());
 
-            userRepository.save(user);
-            return ResponseEntity.ok().body("User updated.");
+                userRepository.save(user);
+                return ResponseEntity.ok().body("User updated.");
+            } else {
+                throw UserException.builder().httpStatus(HttpStatus.BAD_REQUEST).errorType(ErrorType.USER_CANNOT_UPDATE).errorMessage("User cannot update.").build();
+            }
         } else {
-            throw UserException.builder().httpStatus(HttpStatus.BAD_REQUEST).errorType(ErrorType.USER_CANNOT_UPDATE).errorMessage("user cannot update.").build();
+            throw UserException.builder().errorType(ErrorType.DAO_BAD_FORMAT).httpStatus(HttpStatus.BAD_REQUEST).errorMessage("User not found.").build();
         }
-    }
-
-    /**
-     * @param userLoginDao
-     * @return
-     */
-    public ResponseEntity<String> login(UserLoginDao userLoginDao) throws UserException {
-        //TODO update this fun on when spring security implemented
-        if (userLoginDao.getEmail() == null) {
-
-            userRepository.getUserByEmail(userLoginDao.getEmail());
-
-        } else if (userLoginDao.getUserName() == null) {
-
-            userRepository.getUserByUsername(userLoginDao.getUserName());
-
-        } else {
-            throw UserException.builder().httpStatus(HttpStatus.BAD_REQUEST).errorType(ErrorType.USER_CANNOT_UPDATE).errorMessage("user cannot login.").build();
-        }
-
-        return ResponseEntity.ok().body("User logged in.");
     }
 }

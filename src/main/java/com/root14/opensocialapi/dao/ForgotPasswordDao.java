@@ -18,4 +18,6 @@ public class ForgotPasswordDao {
 
     @Email
     private String email;
+
+    private String userName;
 }
