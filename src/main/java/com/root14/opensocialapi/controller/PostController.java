@@ -33,9 +33,9 @@ public class PostController {
         return postService.patchPost(updatePostDao);
     }
 
-    @PostMapping("/likedPost")
-    public ResponseEntity<String> likedPost(@RequestBody LikePostDao likePostDao) throws PostException {
-        return postService.addPostLikedUser(likePostDao);
+    @PostMapping("/likePost")
+    public ResponseEntity<String> likePost(@RequestBody LikePostDao likePostDao) throws PostException {
+        return postService.addPostLikeUser(likePostDao);
     }
 
     @GetMapping

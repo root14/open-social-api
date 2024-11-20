@@ -86,7 +86,7 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<String> addPostLikedUser(LikePostDao likePostDao) throws PostException {
+    public ResponseEntity<String> addPostLikeUser(LikePostDao likePostDao) throws PostException {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Optional<Post> post = postRepository.findPostById(likePostDao.getPostId());
