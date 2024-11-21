@@ -38,6 +38,11 @@ public class PostController {
         return postService.addPostLikeUser(likePostDao);
     }
 
+    @PostMapping
+    public ResponseEntity<Integer> getPostLikeCount(@RequestBody LikePostDao likePostDao) throws PostException {
+        return postService.getPostLikeCount(likePostDao);
+    }
+
     @GetMapping
     public void getTimelinePost() {
 

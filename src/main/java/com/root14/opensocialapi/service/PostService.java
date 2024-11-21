@@ -98,4 +98,15 @@ public class PostService {
             throw PostException.builder().errorMessage("Post not found.").errorType(ErrorType.POST_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    public ResponseEntity<Integer> getPostLikeCount(LikePostDao likePostDao) throws PostException {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<Post> post = postRepository.findPostById(likePostDao.getPostId());
+        if (post.isPresent()) {
+            Post foundedPost = post.get();
+           return ResponseEntity.ok(foundedPost.getLikedUsersId().size());
+        }
+      throw PostException.builder().errorMessage("Post not found.").errorType(ErrorType.POST_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
+    }
 }
