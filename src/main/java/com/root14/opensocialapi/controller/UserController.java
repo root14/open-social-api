@@ -1,13 +1,12 @@
 package com.root14.opensocialapi.controller;
 
-import com.root14.opensocialapi.dao.LoginResponse;
-import com.root14.opensocialapi.dao.UserLoginDao;
-import com.root14.opensocialapi.dao.UserRegisterDao;
-import com.root14.opensocialapi.dao.ForgotPasswordDao;
+import com.root14.opensocialapi.dto.LoginResponse;
+import com.root14.opensocialapi.dto.UserLoginDto;
+import com.root14.opensocialapi.dto.UserRegisterDto;
+import com.root14.opensocialapi.dto.ForgotPasswordDto;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.exception.ErrorType;
 import com.root14.opensocialapi.exception.UserException;
-import com.root14.opensocialapi.service.JwtService;
 import com.root14.opensocialapi.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDao userRegisterDao, BindingResult bindingResult) throws UserException {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDto userRegisterDto, BindingResult bindingResult) throws UserException {
 
         if (bindingResult.hasErrors()) {
 
@@ -43,11 +42,11 @@ public class UserController {
                     .build();
         }
 
-        return userService.saveSocialUser(userRegisterDao);
+        return userService.saveSocialUser(userRegisterDto);
     }
 
     @PostMapping("/forgotPassword")
-    public ResponseEntity<String> updateUser(@Valid @RequestBody ForgotPasswordDao forgotPasswordDao, BindingResult bindingResult) throws Exception, UserException {
+    public ResponseEntity<String> updateUser(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto, BindingResult bindingResult) throws Exception, UserException {
         if (bindingResult.hasErrors()) {
             throw UserException.builder()
                     .errorType(ErrorType.DAO_BAD_FORMAT)
@@ -56,11 +55,11 @@ public class UserController {
                     .build();
         }
 
-        return userService.updateSocialUser(forgotPasswordDao);
+        return userService.updateSocialUser(forgotPasswordDto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDao userLoginDao, BindingResult bindingResult) throws UserException {
+    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDto userLoginDto, BindingResult bindingResult) throws UserException {
         if (bindingResult.hasErrors()) {
             throw UserException.builder()
                     .errorType(ErrorType.DAO_BAD_FORMAT)
@@ -69,6 +68,6 @@ public class UserController {
                     .build();
         }
 
-        return userService.authenticate(userLoginDao);
+        return userService.authenticate(userLoginDto);
     }
 }

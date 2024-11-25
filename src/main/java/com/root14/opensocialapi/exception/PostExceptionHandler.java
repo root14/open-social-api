@@ -11,4 +11,9 @@ public class PostExceptionHandler {
     public ResponseEntity<Object> handlerUserException(PostException postException, WebRequest request) {
         return ResponseEntity.status(postException.getHttpStatus()).body(postException.getErrorMessage());
     }
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<Object> handlerUserException(Exception ex, WebRequest request) {
+        return ResponseEntity.status(500).body(ex.getMessage());
+    }
 }

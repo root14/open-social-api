@@ -1,9 +1,9 @@
 package com.root14.opensocialapi.service;
 
-import com.root14.opensocialapi.dao.AddPostDao;
-import com.root14.opensocialapi.dao.DeletePostDao;
-import com.root14.opensocialapi.dao.LikePostDao;
-import com.root14.opensocialapi.dao.UpdatePostDao;
+import com.root14.opensocialapi.dto.AddPostDto;
+import com.root14.opensocialapi.dto.DeletePostDto;
+import com.root14.opensocialapi.dto.LikePostDto;
+import com.root14.opensocialapi.dto.UpdatePostDto;
 import com.root14.opensocialapi.entity.Post;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.exception.ErrorType;
@@ -28,16 +28,16 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    public ResponseEntity<String> patchPost(UpdatePostDao updatePostDao) {
+    public ResponseEntity<String> patchPost(UpdatePostDto updatePostDto) {
         //authenticated(jwt) userName
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<Post> optionalPost = postRepository.findPostById(updatePostDao.getPostId());
+        Optional<Post> optionalPost = postRepository.findPostById(updatePostDto.getPostId());
 
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
             if (userName.equals(post.getUser().getUsername())) {
-                post.setContent(updatePostDao.getPost().getContent());
+                post.setContent(updatePostDto.getPost().getContent());
                 post.setUpdatedAt(LocalDateTime.now());
                 postRepository.save(post);
                 return ResponseEntity.ok().body("Post updated");
@@ -47,11 +47,11 @@ public class PostService {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Post not found");
     }
 
-    public ResponseEntity<String> deletePost(DeletePostDao deletePostDao) throws PostException {
+    public ResponseEntity<String> deletePost(DeletePostDto deletePostDto) throws PostException {
         //authenticated(jwt) userId
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<Post> post = postRepository.findPostById(deletePostDao.getPostId());
+        Optional<Post> post = postRepository.findPostById(deletePostDto.getPostId());
 
         if (post.isPresent()) {
             if (userName.equals(post.get().getUser().getUsername())) {
@@ -64,7 +64,7 @@ public class PostService {
         throw PostException.builder().httpStatus(HttpStatus.NOT_MODIFIED).errorType(ErrorType.NOT_CHANGED).errorMessage("Cannot delete.").build();
     }
 
-    public ResponseEntity<String> savePost(AddPostDao addPostDao) throws PostException {
+    public ResponseEntity<String> savePost(AddPostDto addPostDto) throws PostException {
         //authenticated(jwt) userId
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -76,7 +76,7 @@ public class PostService {
             post.setUser(user);
             post.setCreatedAt(LocalDateTime.now());
             post.setUpdatedAt(LocalDateTime.now());
-            post.setContent(addPostDao.getContent());
+            post.setContent(addPostDto.getContent());
             user.addPost(post);
 
             userRepository.save(user);
@@ -86,10 +86,10 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<String> addPostLikeUser(LikePostDao likePostDao) throws PostException {
+    public ResponseEntity<String> addPostLikeUser(LikePostDto likePostDto) throws PostException {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<Post> post = postRepository.findPostById(likePostDao.getPostId());
+        Optional<Post> post = postRepository.findPostById(likePostDto.getPostId());
         if (post.isPresent()) {
             Post foundedPost = post.get();
             foundedPost.getLikedUsersId().add(userName);
@@ -99,10 +99,10 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<Integer> getPostLikeCount(LikePostDao likePostDao) throws PostException {
+    public ResponseEntity<Integer> getPostLikeCount(LikePostDto likePostDto) throws PostException {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<Post> post = postRepository.findPostById(likePostDao.getPostId());
+        Optional<Post> post = postRepository.findPostById(likePostDto.getPostId());
         if (post.isPresent()) {
             Post foundedPost = post.get();
            return ResponseEntity.ok(foundedPost.getLikedUsersId().size());

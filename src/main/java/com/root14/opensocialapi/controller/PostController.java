@@ -1,9 +1,9 @@
 package com.root14.opensocialapi.controller;
 
-import com.root14.opensocialapi.dao.AddPostDao;
-import com.root14.opensocialapi.dao.DeletePostDao;
-import com.root14.opensocialapi.dao.LikePostDao;
-import com.root14.opensocialapi.dao.UpdatePostDao;
+import com.root14.opensocialapi.dto.AddPostDto;
+import com.root14.opensocialapi.dto.DeletePostDto;
+import com.root14.opensocialapi.dto.LikePostDto;
+import com.root14.opensocialapi.dto.UpdatePostDto;
 import com.root14.opensocialapi.exception.PostException;
 import com.root14.opensocialapi.service.PostService;
 import org.springframework.http.ResponseEntity;
@@ -19,28 +19,28 @@ public class PostController {
     }
 
     @PostMapping("/addPost")
-    public ResponseEntity<String> addPost(@RequestBody AddPostDao addPostDao) throws PostException {
-        return postService.savePost(addPostDao);
+    public ResponseEntity<String> addPost(@RequestBody AddPostDto addPostDto) throws PostException {
+        return postService.savePost(addPostDto);
     }
 
     @DeleteMapping("/deletePost")
-    public ResponseEntity<String> deletePost(@RequestBody DeletePostDao deletePostDao) throws PostException {
-        return postService.deletePost(deletePostDao);
+    public ResponseEntity<String> deletePost(@RequestBody DeletePostDto deletePostDto) throws PostException {
+        return postService.deletePost(deletePostDto);
     }
 
     @PatchMapping("/patchPost")
-    public ResponseEntity<String> patchPost(@RequestBody UpdatePostDao updatePostDao) throws PostException {
-        return postService.patchPost(updatePostDao);
+    public ResponseEntity<String> patchPost(@RequestBody UpdatePostDto updatePostDto) throws PostException {
+        return postService.patchPost(updatePostDto);
     }
 
     @PostMapping("/likePost")
-    public ResponseEntity<String> likePost(@RequestBody LikePostDao likePostDao) throws PostException {
-        return postService.addPostLikeUser(likePostDao);
+    public ResponseEntity<String> likePost(@RequestBody LikePostDto likePostDto) throws PostException {
+        return postService.addPostLikeUser(likePostDto);
     }
 
     @PostMapping
-    public ResponseEntity<Integer> getPostLikeCount(@RequestBody LikePostDao likePostDao) throws PostException {
-        return postService.getPostLikeCount(likePostDao);
+    public ResponseEntity<Integer> getPostLikeCount(@RequestBody LikePostDto likePostDto) throws PostException {
+        return postService.getPostLikeCount(likePostDto);
     }
 
     @GetMapping

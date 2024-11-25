@@ -1,4 +1,4 @@
-package com.root14.opensocialapi.dao;
+package com.root14.opensocialapi.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,15 +9,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ForgotPasswordDao {
+public class UserRegisterDto {
+
+    @NotBlank
+    private String userName;
+
     @Size(min = 8, max = 20)
     private String password;
 
     @Email
     private String email;
-
-    private String userName;
 }
