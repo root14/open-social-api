@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class TestUserPost {
     private String testUserId;
     private String testContent;
+    private String testUserName;
 }

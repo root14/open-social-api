@@ -38,9 +38,10 @@ public class TestController {
             user = test_user.get();
         } else {
             user = new User();
+            user.setId(Long.valueOf(testUserPost.getTestUserId()));
             user.setPassword("test-user-cannot-login");
-            user.setUsername(testUserPost.getTestUserId());
-            user.setEmail(testUserPost.getTestUserId() + "@test.com");
+            user.setUsername(testUserPost.getTestUserName());
+            user.setEmail(testUserPost.getTestUserName() + "@test.com");
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
             post.setUser(user);
