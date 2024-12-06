@@ -1,9 +1,6 @@
 package com.root14.opensocialapi.service;
 
-import com.root14.opensocialapi.dto.AddPostDto;
-import com.root14.opensocialapi.dto.DeletePostDto;
-import com.root14.opensocialapi.dto.LikePostDto;
-import com.root14.opensocialapi.dto.UpdatePostDto;
+import com.root14.opensocialapi.dto.*;
 import com.root14.opensocialapi.entity.Post;
 import com.root14.opensocialapi.entity.User;
 import com.root14.opensocialapi.exception.ErrorType;
@@ -16,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +26,33 @@ public class PostService {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
     }
+
+    //return last 20 post, it`s not real random timeline post
+    public ResponseEntity<List<PostDto>> getTimelinePost() {
+        //authenticated(jwt) userName
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<List<Post>> randomList = postRepository.findTop20ByOrderByCreatedAtDesc();
+
+        if (randomList.isPresent()) {
+            List<Post> posts = randomList.get();
+            List<PostDto> postDto = new ArrayList<>();
+
+            for (Post post : posts) {
+                PostDto _postDto = new PostDto();
+                _postDto.setAuthorName(post.getUser().getUsername());
+                _postDto.setContent(post.getContent());
+                _postDto.setComments(post.getComments());
+                _postDto.setCreatedAt(post.getCreatedAt());
+                _postDto.setUpdatedAt(post.getUpdatedAt());
+                postDto.add(_postDto);
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(postDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
     public ResponseEntity<String> patchPost(UpdatePostDto updatePostDto) {
         //authenticated(jwt) userName
@@ -105,8 +131,8 @@ public class PostService {
         Optional<Post> post = postRepository.findPostById(likePostDto.getPostId());
         if (post.isPresent()) {
             Post foundedPost = post.get();
-           return ResponseEntity.ok(foundedPost.getLikedUsersId().size());
+            return ResponseEntity.ok(foundedPost.getLikedUsersId().size());
         }
-      throw PostException.builder().errorMessage("Post not found.").errorType(ErrorType.POST_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
+        throw PostException.builder().errorMessage("Post not found.").errorType(ErrorType.POST_NOT_FOUND).httpStatus(HttpStatus.NOT_FOUND).build();
     }
 }

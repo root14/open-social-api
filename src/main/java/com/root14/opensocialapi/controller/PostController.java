@@ -1,16 +1,15 @@
 package com.root14.opensocialapi.controller;
 
-import com.root14.opensocialapi.dto.AddPostDto;
-import com.root14.opensocialapi.dto.DeletePostDto;
-import com.root14.opensocialapi.dto.LikePostDto;
-import com.root14.opensocialapi.dto.UpdatePostDto;
+import com.root14.opensocialapi.dto.*;
 import com.root14.opensocialapi.exception.PostException;
 import com.root14.opensocialapi.service.PostService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping(value = "/api/post")
 public class PostController {
     private final PostService postService;
 
@@ -43,8 +42,10 @@ public class PostController {
         return postService.getPostLikeCount(likePostDto);
     }
 
-    @GetMapping
-    public void getTimelinePost() {
+    @GetMapping("/timeline")
+    @ResponseBody
+    public ResponseEntity<List<PostDto>> getTimelinePost() {
+        return postService.getTimelinePost();
 
     }
 }
