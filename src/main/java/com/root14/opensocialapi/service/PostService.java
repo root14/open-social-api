@@ -125,6 +125,20 @@ public class PostService {
         }
     }
 
+    public ResponseEntity<GetPostDto> getPostById(Long postId) throws PostException {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<Post> optionalPost = postRepository.findPostById(postId);
+
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+            GetPostDto getPostDto = new GetPostDto(post.getUser().getUsername(), post);
+            return ResponseEntity.status(HttpStatus.OK).body(getPostDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     public ResponseEntity<Integer> getPostLikeCount(LikePostDto likePostDto) throws PostException {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 

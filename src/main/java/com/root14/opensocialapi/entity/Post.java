@@ -1,6 +1,7 @@
 package com.root14.opensocialapi.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
+    @JsonIgnore
     @JoinColumn(name = "user_id")
     private User user;
 }
